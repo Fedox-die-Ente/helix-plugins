@@ -1,15 +1,21 @@
 local PLUGIN = PLUGIN
 
 
-// add your class variables down here to the table
+-- add your class variables down here to the table
 local classTable = {
-   // CLASS_DCLASSNORMAL,
-   // CLASS_SCP106
+   -- CLASS_DCLASSNORMAL,
+   -- CLASS_SCP106
+}
+
+-- add your team variables down here to the table
+local factionTable = {
+   -- FACTION_HUMAN,
+   -- FACTION_SCP
 }
 
 function PLUGIN:PlayerCanPressPanicButton(ply)
-    // Here you can add some checks like if player is handcuffed or smth
-    // just return false or true then..
+    -- Here you can add some checks like if player is handcuffed or smth
+    -- just return false or true then..
     return true
 end 
 
@@ -51,24 +57,27 @@ if CLIENT then
             if currentTime - lastPressTime >= cooldown then
                 local meta = ply:GetCharacter()
                 local class = meta:GetClass()
-
                 if PLUGIN:PlayerCanPressPanicButton(ply) then
-                    for _, value in ipairs(classTable) do
-                        if class == value then 
-                            for _, v in ipairs(player.GetAll()) do
-                                local char = v:GetCharacter()
-                                local playerClass = char:GetClass()
-                                if playerClass == value then 
-                                    if ix.config.Get("Should the Panic play a sound?") then
-                                        local soundPath = ix.config.Get("Which sound should be played on press?")
-                                        PlayPanicButtonSound(soundPath)
-                                        playerCooldowns[ply] = currentTime 
-                                        v:ChatNotify("The player " .. ply:Nick() .. " has pressed the panic button. His last recorded position was: "..char:GetData("panicButtonLastArea", "No location recorded.."))
-                                    end 
-                                end
-                            end
+
+                    local function tableHasValue(table,value)
+                        for _, value in ipairs(table) do if (playerClass == value) then return true end end
+                        return false
+                    end
+
+                    for _, v in ipairs(player.GetAll()) do
+                        local char = v:GetCharacter()
+                        local playerClass = char:GetClass()
+                        local playerFaction = char:GetFaction()
+                        if(tableHasValue(classTable,playerClass) or tableHasValue(factionTable,playerFaction)) then
+                            if ix.config.Get("Should the Panic play a sound?") then
+                                    local soundPath = ix.config.Get("Which sound should be played on press?")
+                                    PlayPanicButtonSound(soundPath)
+                                    playerCooldowns[ply] = currentTime 
+                                    v:ChatNotify("The player " .. ply:Nick() .. " has pressed the panic button. His last recorded position was: "..char:GetData("panicButtonLastArea", "No location recorded.."))
+                            end 
                         end
                     end
+                    
                 else
                     ply:Notify("You can't press the panic button now..")
                 end
